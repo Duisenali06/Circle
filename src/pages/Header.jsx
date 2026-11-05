@@ -17,8 +17,8 @@ const Header = () => {
                      `}>
                     <a href=""> <img src={coffeeLogo} alt=""/></a>
                     <div className='hidden md:flex gap-x-4 pr-2 justify-center'>
-                        {headerData.map((header, i) => (
-                            <a key={i}>{header}</a>
+                        {headerData.map((header) => (
+                            <a key={header.path} href={header.path}>{header.title}</a>
                         ))}
                     </div>
                     <div className='hidden md:flex gap-x-3 justify-end'>
@@ -33,8 +33,8 @@ const Header = () => {
                     {open && (
                         <div className='absolute top-full rounded-b-4xl pb-3 left-0 w-full flex flex-col pl-4 bg-white md:hidden'>
                             <div className='flex flex-col'>
-                                {headerData.map((header, i) => (
-                                    <a key={i}>{header}</a>
+                                {headerData.map((header) => (
+                                    <a key={header.path} href={header.path}>{header.title}</a>
                                 ))}
                             </div>
                             <div className='flex gap-x-4'>

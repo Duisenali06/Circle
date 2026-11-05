@@ -1,5 +1,3 @@
-import sticker1 from '../images/sticker1.png'
-import sticker2 from '../images/sticker2.png'
 import conclusionPicture from '../images/conclusionPicture.png'
 
 const Conclusion = () => {
