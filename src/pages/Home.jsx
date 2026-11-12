@@ -1,4 +1,3 @@
-import Header from "./Header.jsx";
 import Logo from "../images/Logo.png";
 import Footer from "./Footer.jsx";
 import background from "../images/background.png";

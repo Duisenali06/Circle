@@ -5,6 +5,9 @@ import About from "./pages/About.jsx";
 import Login from "./pages/Login.jsx";
 import Items from "./pages/Items.jsx";
 import DashboardCoffee from "./pages/DashboardCoffee.jsx";
+import Signup from "./pages/Signup.jsx";
+import Profile from "./pages/Profile.jsx";
+import ProtectedRoute from "./auth/ProtectedRoute.jsx";
 function App() {
 
 
@@ -21,6 +24,10 @@ function App() {
                     <Route path="/items" element={<Items />} />
                     <Route path="/dashboard" element={<DashboardCoffee />} />
                     <Route path="/login" element={<Login />} />
+                    <Route path="/signup" element={<Signup />} />
+                    <Route element={<ProtectedRoute />}>
+                        <Route path="/profile" element={<Profile />} />
+                    </Route>
                     {/* <Route path="/items/:id" element={<ItemDetails />} /> */}
                     {/* <Route path="*" element={<NotFound />} /> */}
                 </Route>

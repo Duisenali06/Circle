@@ -15,7 +15,7 @@ function setParam(params, key, value) {
 }
 
 export default function Items() {
-  const { status, items, error } = useCoffeeItems()
+  const { status, items, error, refetch } = useCoffeeItems()
   const [searchParams, setSearchParams] = useSearchParams()
   const search = searchParams.get('search') ?? ''
   const ingredientFilter = searchParams.get('ingredient') ?? ''
@@ -87,7 +87,7 @@ export default function Items() {
         </section>
 
         {status === 'loading' && <p className="rounded-2xl bg-white p-8 text-center text-stone-600" role="status">Загружаем меню…</p>}
-        {status === 'error' && <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-red-900" role="alert"><p>Не удалось загрузить меню: {error}</p><button className="mt-3 underline" onClick={() => window.location.reload()}>Попробовать снова</button></div>}
+        {status === 'error' && <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-red-900" role="alert"><p>Не удалось загрузить меню: {error}</p><button className="mt-3 underline" onClick={refetch}>Попробовать снова</button></div>}
         {status === 'success' && filteredItems.length === 0 && <div className="rounded-2xl bg-white p-10 text-center"><h2 className="text-xl font-semibold">Ничего не найдено</h2><p className="mt-2 text-stone-600">Измените запрос или сбросьте фильтры.</p><button className="mt-4 font-medium text-amber-900 underline" onClick={() => setSearchParams({})}>Сбросить фильтры</button></div>}
         {status === 'success' && filteredItems.length > 0 && <>
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">{pageItems.map((item) => <CoffeeCard key={item.id} item={item} />)}</div>

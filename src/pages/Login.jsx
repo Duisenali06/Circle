@@ -1,47 +1,39 @@
-import React from 'react';
-import { Button, Checkbox, Form, Input } from 'antd';
-const onFinish = values => {
-    console.log('Success:', values);
-};
-const onFinishFailed = errorInfo => {
-    console.log('Failed:', errorInfo);
-};
-const Login = () => (
-    <Form
-        name="basic"
-        labelCol={{ span: 8 }}
-        wrapperCol={{ span: 16 }}
-        style={{ maxWidth: 600 }}
-        initialValues={{ remember: true }}
-        onFinish={onFinish}
-        onFinishFailed={onFinishFailed}
-        autoComplete="off"
-    >
-        <Form.Item
-            label="Username"
-            name="username"
-            rules={[{ required: true, message: 'Please input your username!' }]}
-        >
-            <Input />
-        </Form.Item>
+import { useState } from 'react'
+import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
+import { useAuth } from '../auth/AuthContext.jsx'
 
-        <Form.Item
-            label="Password"
-            name="password"
-            rules={[{ required: true, message: 'Please input your password!' }]}
-        >
-            <Input.Password />
-        </Form.Item>
+export default function Login() {
+  const { user, loading, error, login, loginWithGoogle, clearError } = useAuth()
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [busy, setBusy] = useState(false)
+  const navigate = useNavigate()
+  const location = useLocation()
+  if (loading) return <p className="p-10 text-center" role="status">Проверяем сессию…</p>
+  if (user) return <Navigate to="/profile" replace />
 
-        <Form.Item name="remember" valuePropName="checked" label={null}>
-            <Checkbox>Remember me</Checkbox>
-        </Form.Item>
+  const submit = async (event) => {
+    event.preventDefault(); clearError(); setBusy(true)
+    try { await login(email, password); navigate(location.state?.from?.pathname || '/profile', { replace: true }) }
+    catch { /* Ошибка показана из AuthContext */ }
+    finally { setBusy(false) }
+  }
+  const google = async () => {
+    clearError(); setBusy(true)
+    try { await loginWithGoogle(); navigate('/profile', { replace: true }) }
+    catch { /* Ошибка показана из AuthContext */ }
+    finally { setBusy(false) }
+  }
 
-        <Form.Item label={null}>
-            <Button type="primary" htmlType="submit">
-                Submit
-            </Button>
-        </Form.Item>
-    </Form>
-);
-export default Login;
+  return <main className="mx-auto min-h-[60vh] max-w-lg px-5 py-12">
+    <h1 className="mb-6 text-3xl font-semibold">Вход</h1>
+    <form className="space-y-4 rounded-3xl bg-white p-6 shadow-sm" onSubmit={submit}>
+      <label className="block">Email<input className="mt-1 w-full rounded-xl border p-3" type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} /></label>
+      <label className="block">Пароль<input className="mt-1 w-full rounded-xl border p-3" type="password" autoComplete="current-password" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} /></label>
+      {error && <p className="text-sm text-red-700" role="alert">{error}</p>}
+      <button disabled={busy} className="w-full rounded-full bg-stone-900 p-3 text-white disabled:opacity-60">{busy ? 'Входим…' : 'Войти'}</button>
+      <button type="button" disabled={busy} onClick={google} className="w-full rounded-full border p-3 disabled:opacity-60">Войти через Google</button>
+      <p className="text-sm">Нет аккаунта? <Link className="underline" to="/signup">Зарегистрироваться</Link></p>
+    </form>
+  </main>
+}

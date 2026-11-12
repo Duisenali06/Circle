@@ -1,28 +1,19 @@
-import { useEffect, useState } from 'react'
-
-const COFFEE_API = 'https://api.sampleapis.com/coffee/hot'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { getCoffeeItems } from '../services/coffeeApi.js'
 
 export default function useCoffeeItems() {
   const [state, setState] = useState({ status: 'loading', items: [], error: '' })
-
-  useEffect(() => {
-    const controller = new AbortController()
-
-    fetch(COFFEE_API, { signal: controller.signal })
-      .then((response) => {
-        if (!response.ok) throw new Error(`Не удалось загрузить меню (${response.status})`)
-        return response.json()
-      })
-      .then((items) => {
-        if (!Array.isArray(items)) throw new Error('API вернул данные в неожиданном формате')
-        setState({ status: 'success', items, error: '' })
-      })
-      .catch((error) => {
-        if (error.name !== 'AbortError') setState({ status: 'error', items: [], error: error.message })
-      })
-
-    return () => controller.abort()
+  const requestId = useRef(0)
+  const load = useCallback(async (force = false) => {
+    const id = ++requestId.current
+    setState((current) => ({ ...current, status: current.items.length ? 'success' : 'loading', error: '' }))
+    try {
+      const items = await getCoffeeItems({ force })
+      if (requestId.current === id) setState({ status: 'success', items, error: '' })
+    } catch (error) {
+      if (requestId.current === id) setState((current) => ({ ...current, status: 'error', error: error.message }))
+    }
   }, [])
-
-  return state
+  useEffect(() => { load(); return () => { requestId.current += 1 } }, [load])
+  return { ...state, refetch: () => load(true) }
 }
