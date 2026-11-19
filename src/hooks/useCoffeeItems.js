@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { getCoffeeItems } from '../services/coffeeApi.js'
+import { getCoffeeItems, isCoffeeDataOffline } from '../services/coffeeApi.js'
 
 export default function useCoffeeItems() {
   const [state, setState] = useState({ status: 'loading', items: [], error: '' })
@@ -9,7 +9,7 @@ export default function useCoffeeItems() {
     setState((current) => ({ ...current, status: current.items.length ? 'success' : 'loading', error: '' }))
     try {
       const items = await getCoffeeItems({ force })
-      if (requestId.current === id) setState({ status: 'success', items, error: '' })
+      if (requestId.current === id) setState({ status: 'success', items, error: '', offlineData: isCoffeeDataOffline() })
     } catch (error) {
       if (requestId.current === id) setState((current) => ({ ...current, status: 'error', error: error.message }))
     }

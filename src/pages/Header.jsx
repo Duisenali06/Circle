@@ -19,10 +19,10 @@ export default function Header() {
 
   return <header className="bg-yellow-300 px-5 py-5">
     <nav className={`relative grid grid-cols-[auto_1fr_auto] items-center bg-white px-4 lg:px-15 md:grid-cols-[1fr_auto_1fr] ${open ? 'rounded-t-4xl rounded-b-none' : 'rounded-4xl'}`}>
-      <Link to="/" aria-label="Steppe Coffee"><img src={coffeeLogo} alt="Steppe Coffee" /></Link>
+      <Link to="/" aria-label="Steppe Coffee"><img className="h-auto w-32 max-w-full sm:w-40" src={coffeeLogo} alt="Steppe Coffee" /></Link>
       <div className="hidden justify-center gap-x-4 pr-2 md:flex">{items}</div>
       <div className="hidden justify-end gap-x-3 md:flex"><DropDownBtn>рус</DropDownBtn>{logoutButton}</div>
-      <button aria-label="Открыть меню" className="justify-self-end md:hidden" onClick={() => setOpen(!open)}>☰</button>
+      <button aria-label="Открыть меню" className="min-h-11 min-w-11 justify-self-end rounded-full text-xl md:hidden" onClick={() => setOpen(!open)}>☰</button>
       {open && <div className="absolute left-0 top-full z-10 flex w-full flex-col gap-3 rounded-b-4xl bg-white pb-3 pl-4 md:hidden">
         <div className="flex flex-col">{items}</div>
         <div className="flex gap-x-4"><DropDownBtn>рус</DropDownBtn>{logoutButton}</div>

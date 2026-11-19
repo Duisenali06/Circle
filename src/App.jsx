@@ -8,6 +8,8 @@ import DashboardCoffee from "./pages/DashboardCoffee.jsx";
 import Signup from "./pages/Signup.jsx";
 import Profile from "./pages/Profile.jsx";
 import ProtectedRoute from "./auth/ProtectedRoute.jsx";
+import PwaStatus from './ui/PwaStatus.jsx'
+import Offline from './pages/Offline.jsx'
 function App() {
 
 
@@ -16,7 +18,9 @@ function App() {
 
 
         <BrowserRouter basename={import.meta.env.BASE_URL}>
+            <PwaStatus />
             <Routes>
+                    <Route path="offline" element={<Offline />} />
                 <Route element={<Layout />}>
                     <Route index element={<Home/>}/>
                     <Route path="practice/circle" element={<Home/>}/>

@@ -13,7 +13,7 @@ function Stat({ label, value, note }) {
 }
 
 export default function DashboardCoffee() {
-  const { status, items, error } = useCoffeeItems()
+  const { status, items, error, offlineData } = useCoffeeItems()
   const [searchParams, setSearchParams] = useSearchParams()
   const selectedIngredient = searchParams.get('ingredient') ?? ''
   const ingredients = useMemo(() => [...new Set(items.flatMap((item) => item.ingredients ?? []))].sort((a, b) => a.localeCompare(b)), [items])
@@ -70,6 +70,7 @@ export default function DashboardCoffee() {
           <Link to="/items" className="rounded-full bg-stone-900 px-5 py-3 text-sm font-medium text-white transition hover:bg-amber-900">Перейти к меню →</Link>
         </div>
 
+        {offlineData && <p className="mb-4 rounded-xl bg-amber-100 p-3 text-sm text-amber-950" role="status">Показана сохранённая статистика по меню.</p>}
         {status === 'loading' && <p className="rounded-2xl bg-white p-8 text-center text-stone-600" role="status">Загружаем данные…</p>}
         {status === 'error' && <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-red-900" role="alert">Не удалось загрузить статистику: {error}</div>}
         {status === 'success' && <>

@@ -15,7 +15,7 @@ function setParam(params, key, value) {
 }
 
 export default function Items() {
-  const { status, items, error, refetch } = useCoffeeItems()
+  const { status, items, error, refetch, offlineData } = useCoffeeItems()
   const [searchParams, setSearchParams] = useSearchParams()
   const search = searchParams.get('search') ?? ''
   const ingredientFilter = searchParams.get('ingredient') ?? ''
@@ -63,6 +63,7 @@ export default function Items() {
           </Link>
         </div>
 
+        {offlineData && <p className="mb-4 rounded-xl bg-amber-100 p-3 text-sm text-amber-950" role="status">Показаны сохранённые данные меню: подключение к API недоступно.</p>}
         <section aria-label="Поиск и фильтры" className="mb-8 grid gap-3 rounded-3xl border border-white bg-white/70 p-4 shadow-sm sm:grid-cols-2 lg:grid-cols-4">
           <input className={`${inputClass} lg:col-span-2`} type="search" value={search} onChange={(event) => setSearchParams(setParam(searchParams, 'search', event.target.value))} placeholder="Поиск по названию и составу" aria-label="Поиск по названию и составу" />
           <select className={inputClass} value={ingredientFilter} onChange={(event) => setSearchParams(setParam(searchParams, 'ingredient', event.target.value))} aria-label="Фильтр по ингредиенту">

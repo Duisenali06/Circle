@@ -18,9 +18,15 @@ The Firebase web configuration uses Vite `VITE_` variables. Firebase web API key
 
 Email/password signup and login, Google popup login, persistent browser sessions, and logout are provided through `AuthContext`. `/profile` is protected and shows the signed-in user's email and UID.
 
-## Caching strategy
+## PWA and offline use
 
-The coffee API service caches the hot coffee response in memory under the `coffee:hot` key for five minutes. `/items` and `/dashboard` share the same cached result. After expiry, the next request fetches fresh data. The service exports `invalidateCoffeeCache()` for use after any future create, update, or delete operation; those mutations should invalidate `coffee:hot`. Request IDs in the hook prevent an older response from replacing a newer request's result.
+The app is installable from supported browsers. `public/manifest.json` describes the app and its two icons. `public/sw.js` precaches the built HTML, JavaScript, CSS, icons, manifest, and offline page. The build writes a list of shell files and derives a cache version from their names, so a new build receives new caches and the old ones are removed on activation. When an update is ready, the app shows an **Обновить приложение** button.
+
+The service worker uses network-first for the public coffee API and pages, and cache-first for images, icons, and fonts. Runtime caches have entry limits. Coffee menu responses are also stored locally in IndexedDB so `/items` and `/dashboard` can show the last fetched public data offline; the pages label that data as saved. Authentication responses are not stored. `/offline` provides a retry action when a page is not available.
+
+## Caching strategy (in memory)
+
+The coffee API service also keeps the hot coffee response in memory under the `coffee:hot` key for five minutes. `/items` and `/dashboard` share the same result while the app is open. The service exports `invalidateCoffeeCache()` for use after any future create, update, or delete operation. Request IDs in the hook prevent an older response from replacing a newer request's result.
 
 ## Deployment
 
