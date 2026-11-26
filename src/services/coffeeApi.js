@@ -32,13 +32,41 @@ async function fetchCoffee() {
   const requestGeneration = generation
   const response = await fetch(COFFEE_API)
   if (!response.ok) throw new Error(`Не удалось загрузить меню (${response.status})`)
-  const items = await response.json()
-  if (!Array.isArray(items)) throw new Error('API вернул данные в неожиданном формате')
+  const payload = await response.json()
+  const drinks = Array.isArray(payload) ? payload : payload.data
+  if (!Array.isArray(drinks)) throw new Error('API вернул данные в неожиданном формате')
+  const items = drinks.map(normalizeDrink)
   if (requestGeneration === generation) {
     cached = { items, expiresAt: Date.now() + CACHE_TTL, offline: false }
     saveOffline(items)
   }
   return items
+}
+
+function normalizeDrink(drink) {
+  return {
+    ...drink,
+    id: drink.id,
+    title: drink.name || drink.title || `Drink ${drink.id}`,
+    description: drink.description || `${drink.type === 'cold' ? 'Cold' : 'Hot'} coffee drink`,
+    ingredients: Array.isArray(drink.ingredients) ? drink.ingredients : [],
+    image: drink.image || '',
+    type: drink.type || 'hot',
+    price: Number(drink.price) || 0,
+  }
+}
+
+export async function getCoffeeDetails(id) {
+  try {
+    const response = await fetch(`${COFFEE_API}/${encodeURIComponent(id)}`)
+    if (!response.ok) throw new Error(`Не удалось загрузить напиток (${response.status})`)
+    return normalizeDrink(await response.json())
+  } catch (error) {
+    const cachedItems = await getCoffeeItems()
+    const item = cachedItems.find((drink) => String(drink.id) === String(id))
+    if (item) return item
+    throw error
+  }
 }
 
 export function getCoffeeItems({ force = false } = {}) {
@@ -47,8 +75,9 @@ export function getCoffeeItems({ force = false } = {}) {
   const request = fetchCoffee().catch(async () => {
     const offlineItems = await readOffline()
     if (offlineItems) {
-      cached = { items: offlineItems, expiresAt: 0, offline: true }
-      return offlineItems
+      const items = offlineItems.map(normalizeDrink)
+      cached = { items, expiresAt: 0, offline: true }
+      return items
     }
     cached = { items: coffeeFallback, expiresAt: 0, offline: true }
     return coffeeFallback

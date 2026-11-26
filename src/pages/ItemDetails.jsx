@@ -10,8 +10,8 @@ export default function ItemDetails() {
     <Link className="text-amber-900 underline" to="/items">← К меню</Link>
     <article className="mt-6 overflow-hidden rounded-3xl bg-white shadow-sm">
       {item.image && <img className="max-h-96 w-full object-cover" src={item.image} alt={item.title} />}
-      <div className="p-7"><h1 className="text-3xl font-semibold">{item.title}</h1><p className="mt-4 text-stone-600">{item.description || 'Описание пока не добавлено.'}</p>
-        <h2 className="mt-6 font-semibold">Ингредиенты</h2><ul className="mt-2 list-inside list-disc text-stone-600">{(item.ingredients || []).map((ingredient) => <li key={ingredient}>{ingredient}</li>)}</ul>
+      <div className="p-7"><h1 className="text-3xl font-semibold">{item.title}</h1><p className="mt-2 font-medium text-amber-900">{item.type === 'cold' ? 'Cold drink' : 'Hot drink'} · Price {Number(item.price || 0).toFixed(2)}</p><p className="mt-4 text-stone-600">{item.description}</p>
+        {item.ingredients?.length > 0 && <><h2 className="mt-6 font-semibold">Ингредиенты</h2><ul className="mt-2 list-inside list-disc text-stone-600">{item.ingredients.map((ingredient) => <li key={ingredient}>{ingredient}</li>)}</ul></>}
       </div>
     </article>
   </main>

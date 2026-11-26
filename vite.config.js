@@ -37,9 +37,9 @@ export default defineConfig({
   server: {
     proxy: {
       '/api/coffee': {
-        target: 'https://api.sampleapis.com',
+        target: 'https://funapi.dev',
         changeOrigin: true,
-        rewrite: () => '/coffee/hot',
+        rewrite: (path) => path.replace('/api/coffee', '/api/coffee/v1/drinks'),
       },
     },
   },

@@ -1,17 +1,14 @@
 import { createAsyncThunk, createSelector, createSlice } from '@reduxjs/toolkit'
-import { getCoffeeItems, isCoffeeDataOffline } from '../services/coffeeApi.js'
+import { getCoffeeDetails, getCoffeeItems, isCoffeeDataOffline } from '../services/coffeeApi.js'
 
 export const fetchCoffeeItems = createAsyncThunk('coffee/fetchItems', async ({ force = false } = {}, { rejectWithValue }) => {
   try { return await getCoffeeItems({ force }) }
   catch (error) { return rejectWithValue(error.message || 'Не удалось загрузить меню') }
 }, { condition: ({ force } = {}, { getState }) => force || getState().coffee.status !== 'loading' })
 
-export const fetchCoffeeDetails = createAsyncThunk('coffee/fetchDetails', async (id, { getState, rejectWithValue }) => {
+export const fetchCoffeeDetails = createAsyncThunk('coffee/fetchDetails', async (id, { rejectWithValue }) => {
   try {
-    const items = getState().coffee.items.length ? getState().coffee.items : await getCoffeeItems()
-    const item = items.find((coffee) => String(coffee.id) === String(id))
-    if (!item) return rejectWithValue('Напиток не найден')
-    return item
+    return await getCoffeeDetails(id)
   } catch (error) { return rejectWithValue(error.message || 'Не удалось загрузить напиток') }
 })
 
@@ -52,39 +49,35 @@ export const selectCoffeeDetailsStatus = (state) => state.coffee.detailsStatus
 export const selectCoffeeDetailsError = (state) => state.coffee.detailsError
 export const selectCoffeeById = (state, id) => state.coffee.details[id] || state.coffee.items.find((item) => String(item.id) === String(id))
 export const selectIngredients = createSelector([selectItems], (items) => [...new Set(items.flatMap((item) => item.ingredients || []))].sort((a, b) => a.localeCompare(b)))
-export const selectCoffeeStats = createSelector([selectItems, (_, ingredient) => ingredient], (items, ingredient) => {
-  const filtered = ingredient ? items.filter((item) => (item.ingredients || []).includes(ingredient)) : items
-  const counts = new Map()
-  let total = 0
-  let mostComplex = null
-  for (const item of filtered) {
-    const list = item.ingredients || []
-    total += list.length
-    if (!mostComplex || list.length > (mostComplex.ingredients?.length || 0)) mostComplex = item
-    for (const name of list) counts.set(name, (counts.get(name) || 0) + 1)
-  }
-  const simple = filtered.filter((item) => (item.ingredients?.length || 0) <= 2).length
+export const selectDrinkTypes = createSelector([selectItems], (items) => [...new Set(items.map((item) => item.type).filter(Boolean))].sort())
+export const selectCoffeeStats = createSelector([selectItems, (_, type) => type], (items, type) => {
+  const filtered = type ? items.filter((item) => item.type === type) : items
+  const typeCounts = new Map()
+  const totalPrice = filtered.reduce((sum, item) => sum + item.price, 0)
+  const mostExpensive = filtered.reduce((top, item) => item.price > (top?.price ?? -1) ? item : top, null)
+  for (const item of filtered) typeCounts.set(item.type, (typeCounts.get(item.type) || 0) + 1)
+  const hotCount = filtered.filter((item) => item.type === 'hot').length
+  const coldCount = filtered.filter((item) => item.type === 'cold').length
+  const underFour = filtered.filter((item) => item.price < 4).length
   return {
-    count: filtered.length, uniqueIngredients: counts.size,
-    averageIngredients: filtered.length ? (total / filtered.length).toFixed(1) : '0', mostComplex,
-    ingredientBreakdown: [...counts].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])),
-    recipeBreakdown: [
-      { label: 'Простые рецепты · до 2 ингредиентов', count: simple },
-      { label: 'Расширенные рецепты · от 3 ингредиентов', count: filtered.length - simple },
+    count: filtered.length, typeCount: typeCounts.size, hotCount, coldCount,
+    averagePrice: filtered.length ? (totalPrice / filtered.length).toFixed(2) : '0.00', mostExpensive,
+    typeBreakdown: [...typeCounts].sort((a, b) => b[1] - a[1]),
+    priceBreakdown: [
+      { label: 'Under 4', count: underFour },
+      { label: '4 and over', count: filtered.length - underFour },
     ],
   }
 })
-export const selectFilteredCoffee = createSelector([selectItems, (_, filters) => filters], (items, { search = '', ingredient = '', size = '', sort = 'title-asc' }) => {
+export const selectFilteredCoffee = createSelector([selectItems, (_, filters) => filters], (items, { search = '', type = '', sort = 'title-asc' }) => {
   const query = search.trim().toLocaleLowerCase()
   return items.filter((item) => {
-    const ingredients = item.ingredients || []
-    const matchesQuery = !query || `${item.title} ${item.description} ${ingredients.join(' ')}`.toLocaleLowerCase().includes(query)
-    const matchesSize = !size || (size === 'simple' ? ingredients.length <= 2 : ingredients.length >= 3)
-    return matchesQuery && (!ingredient || ingredients.includes(ingredient)) && matchesSize
+    const matchesQuery = !query || `${item.title} ${item.description} ${item.type}`.toLocaleLowerCase().includes(query)
+    return matchesQuery && (!type || item.type === type)
   }).slice().sort((a, b) => {
     if (sort === 'title-desc') return b.title.localeCompare(a.title)
-    if (sort === 'ingredients-desc') return (b.ingredients?.length || 0) - (a.ingredients?.length || 0)
-    if (sort === 'ingredients-asc') return (a.ingredients?.length || 0) - (b.ingredients?.length || 0)
+    if (sort === 'price-desc') return b.price - a.price
+    if (sort === 'price-asc') return a.price - b.price
     return a.title.localeCompare(b.title)
   })
 })

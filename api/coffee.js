@@ -1,6 +1,6 @@
 export default async function handler(_request, response) {
   try {
-    const upstream = await fetch('https://api.sampleapis.com/coffee/hot', {
+    const upstream = await fetch('https://funapi.dev/api/coffee/v1/drinks', {
       signal: AbortSignal.timeout(8000),
     })
     const body = await upstream.text()

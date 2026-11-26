@@ -3,7 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 import CoffeeCard from '../ui/CoffeeCard.jsx'
 import useCoffeeItems from '../hooks/useCoffeeItems.js'
-import { selectFilteredCoffee, selectIngredients } from '../store/coffeeSlice.js'
+import { selectDrinkTypes, selectFilteredCoffee } from '../store/coffeeSlice.js'
 
 const PAGE_SIZE = 8
 const inputClass = 'w-full rounded-xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-800 outline-none transition focus:border-amber-700 focus:ring-2 focus:ring-amber-100'
@@ -20,13 +20,12 @@ export default function Items() {
   const { status, error, refetch, offlineData } = useCoffeeItems()
   const [searchParams, setSearchParams] = useSearchParams()
   const search = searchParams.get('search') ?? ''
-  const ingredientFilter = searchParams.get('ingredient') ?? ''
-  const recipeSize = searchParams.get('size') ?? ''
+  const drinkType = searchParams.get('type') ?? ''
   const sort = searchParams.get('sort') ?? 'title-asc'
   const page = Math.max(1, Number.parseInt(searchParams.get('page') ?? '1', 10) || 1)
 
-  const filterOptions = useMemo(() => ({ search, ingredient: ingredientFilter, size: recipeSize, sort }), [search, ingredientFilter, recipeSize, sort])
-  const ingredients = useSelector(selectIngredients)
+  const filterOptions = useMemo(() => ({ search, type: drinkType, sort }), [search, drinkType, sort])
+  const drinkTypes = useSelector(selectDrinkTypes)
   const filteredItems = useSelector((state) => selectFilteredCoffee(state, filterOptions))
 
   const pageCount = Math.max(1, Math.ceil(filteredItems.length / PAGE_SIZE))
@@ -49,21 +48,16 @@ export default function Items() {
 
         {offlineData && <p className="mb-4 rounded-xl bg-amber-100 p-3 text-sm text-amber-950" role="status">Показаны сохранённые данные меню: подключение к API недоступно.</p>}
         <section aria-label="Поиск и фильтры" className="mb-8 grid gap-3 rounded-3xl border border-white bg-white/70 p-4 shadow-sm sm:grid-cols-2 lg:grid-cols-4">
-          <input className={`${inputClass} lg:col-span-2`} type="search" value={search} onChange={(event) => setSearchParams(setParam(searchParams, 'search', event.target.value))} placeholder="Поиск по названию и составу" aria-label="Поиск по названию и составу" />
-          <select className={inputClass} value={ingredientFilter} onChange={(event) => setSearchParams(setParam(searchParams, 'ingredient', event.target.value))} aria-label="Фильтр по ингредиенту">
-            <option value="">Все ингредиенты</option>
-            {ingredients.map((ingredient) => <option key={ingredient} value={ingredient}>{ingredient}</option>)}
-          </select>
-          <select className={inputClass} value={recipeSize} onChange={(event) => setSearchParams(setParam(searchParams, 'size', event.target.value))} aria-label="Фильтр по количеству ингредиентов">
-            <option value="">Любой состав</option>
-            <option value="simple">Простой (до 2 ингредиентов)</option>
-            <option value="complex">Расширенный (3 и больше)</option>
+          <input className={`${inputClass} lg:col-span-2`} type="search" value={search} onChange={(event) => setSearchParams(setParam(searchParams, 'search', event.target.value))} placeholder="Поиск по названию или типу" aria-label="Поиск по названию или типу" />
+          <select className={inputClass} value={drinkType} onChange={(event) => setSearchParams(setParam(searchParams, 'type', event.target.value))} aria-label="Filter by drink type">
+            <option value="">All drink types</option>
+            {drinkTypes.map((type) => <option key={type} value={type}>{type}</option>)}
           </select>
           <select className={inputClass} value={sort} onChange={(event) => setSearchParams(setParam(searchParams, 'sort', event.target.value))} aria-label="Сортировка">
             <option value="title-asc">Название: А—Я</option>
             <option value="title-desc">Название: Я—А</option>
-            <option value="ingredients-desc">Сначала больше ингредиентов</option>
-            <option value="ingredients-asc">Сначала меньше ингредиентов</option>
+            <option value="price-asc">Price: low to high</option>
+            <option value="price-desc">Price: high to low</option>
           </select>
           <div className="flex items-center justify-between gap-3 text-sm text-stone-600 sm:col-span-2 lg:col-span-3">
             <span>{filteredItems.length} напитков найдено</span>
