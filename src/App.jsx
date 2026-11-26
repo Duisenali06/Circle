@@ -10,8 +10,29 @@ import Profile from "./pages/Profile.jsx";
 import ProtectedRoute from "./auth/ProtectedRoute.jsx";
 import PwaStatus from './ui/PwaStatus.jsx'
 import Offline from './pages/Offline.jsx'
+import Favorites from './pages/Favorites.jsx'
+import ItemDetails from './pages/ItemDetails.jsx'
+import Cart from './pages/Cart.jsx'
+import { useEffect } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
+import { useAuth } from './auth/AuthContext.jsx'
+import { loadSelection, selectSelectionStatus } from './store/selectionSlice.js'
 function App() {
+  const dispatch = useDispatch()
+  const { user, loading } = useAuth()
+  const status = useSelector(selectSelectionStatus)
+  const selectionUid = useSelector((state) => state.selection.uid)
+  const uid = user?.uid || null
 
+  useEffect(() => {
+    if (!loading && (status === 'idle' || selectionUid !== uid)) dispatch(loadSelection(uid))
+  }, [dispatch, loading, status, selectionUid, uid])
+
+  useEffect(() => {
+    const syncWhenOnline = () => dispatch(loadSelection(uid))
+    window.addEventListener('online', syncWhenOnline)
+    return () => window.removeEventListener('online', syncWhenOnline)
+  }, [dispatch, uid])
 
   return (
     <>
@@ -26,6 +47,9 @@ function App() {
                     <Route path="practice/circle" element={<Home/>}/>
                     <Route path="/about" element={<About />} />
                     <Route path="/items" element={<Items />} />
+                    <Route path="/items/:id" element={<ItemDetails />} />
+                    <Route path="/favorites" element={<Favorites />} />
+                    <Route path="/cart" element={<Cart />} />
                     <Route path="/dashboard" element={<DashboardCoffee />} />
                     <Route path="/login" element={<Login />} />
                     <Route path="/signup" element={<Signup />} />

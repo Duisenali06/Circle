@@ -1,14 +1,17 @@
 import { useEffect, useState } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
+import { selectOnline, setOnline } from '../store/pwaSlice.js'
 
 export default function PwaStatus() {
-  const [online, setOnline] = useState(navigator.onLine)
+  const dispatch = useDispatch()
+  const online = useSelector(selectOnline)
   const [registration, setRegistration] = useState(null)
   const [update, setUpdate] = useState(false)
   const [installPrompt, setInstallPrompt] = useState(null)
 
   useEffect(() => {
-    const onlineNow = () => setOnline(true)
-    const offlineNow = () => setOnline(false)
+    const onlineNow = () => dispatch(setOnline(true))
+    const offlineNow = () => dispatch(setOnline(false))
     const installAvailable = (event) => { event.preventDefault(); setInstallPrompt(event) }
     const controllerChanged = () => window.location.reload()
     window.addEventListener('online', onlineNow)
@@ -30,7 +33,7 @@ export default function PwaStatus() {
       window.removeEventListener('beforeinstallprompt', installAvailable)
       navigator.serviceWorker?.removeEventListener('controllerchange', controllerChanged)
     }
-  }, [])
+  }, [dispatch])
   const install = async () => { await installPrompt?.prompt(); setInstallPrompt(null) }
   return <div className={`px-4 py-2 text-center text-sm ${online ? 'bg-green-100 text-green-900' : 'bg-amber-100 text-amber-950'}`} role="status">
     {online ? 'Вы в сети' : 'Нет подключения к интернету'}

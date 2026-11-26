@@ -44,7 +44,7 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(request.url)
   if (request.method !== 'GET') return
 
-  if (url.origin === 'https://api.sampleapis.com' && url.pathname === '/coffee/hot' && !request.headers.has('authorization')) {
+  if (url.origin === self.location.origin && url.pathname === '/api/coffee') {
     event.respondWith((async () => {
       const cache = await caches.open(API)
       try {

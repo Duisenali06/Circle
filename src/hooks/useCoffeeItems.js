@@ -1,19 +1,15 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
-import { getCoffeeItems, isCoffeeDataOffline } from '../services/coffeeApi.js'
+import { useEffect } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
+import { fetchCoffeeItems, selectCoffeeError, selectCoffeeOffline, selectCoffeeStatus } from '../store/coffeeSlice.js'
 
 export default function useCoffeeItems() {
-  const [state, setState] = useState({ status: 'loading', items: [], error: '' })
-  const requestId = useRef(0)
-  const load = useCallback(async (force = false) => {
-    const id = ++requestId.current
-    setState((current) => ({ ...current, status: current.items.length ? 'success' : 'loading', error: '' }))
-    try {
-      const items = await getCoffeeItems({ force })
-      if (requestId.current === id) setState({ status: 'success', items, error: '', offlineData: isCoffeeDataOffline() })
-    } catch (error) {
-      if (requestId.current === id) setState((current) => ({ ...current, status: 'error', error: error.message }))
-    }
-  }, [])
-  useEffect(() => { load(); return () => { requestId.current += 1 } }, [load])
-  return { ...state, refetch: () => load(true) }
+  const dispatch = useDispatch()
+  const status = useSelector(selectCoffeeStatus)
+  const items = useSelector((state) => state.coffee.items)
+  const error = useSelector(selectCoffeeError)
+  const offlineData = useSelector(selectCoffeeOffline)
+  useEffect(() => {
+    if (status === 'idle') dispatch(fetchCoffeeItems())
+  }, [dispatch, status])
+  return { status: status === 'idle' ? 'loading' : status, items, error, offlineData, refetch: () => dispatch(fetchCoffeeItems({ force: true })) }
 }

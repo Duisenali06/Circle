@@ -34,5 +34,14 @@ function pwaShell() {
 // https://vite.dev/config/
 export default defineConfig({
   base: '/',
+  server: {
+    proxy: {
+      '/api/coffee': {
+        target: 'https://api.sampleapis.com',
+        changeOrigin: true,
+        rewrite: () => '/coffee/hot',
+      },
+    },
+  },
   plugins: [tailwindcss(), react(), pwaShell()],
 })

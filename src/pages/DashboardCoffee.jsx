@@ -1,6 +1,8 @@
 import { useMemo } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
+import { useSelector } from 'react-redux'
 import useCoffeeItems from '../hooks/useCoffeeItems.js'
+import { selectIngredients } from '../store/coffeeSlice.js'
 
 function Stat({ label, value, note }) {
   return (
@@ -16,7 +18,7 @@ export default function DashboardCoffee() {
   const { status, items, error, offlineData } = useCoffeeItems()
   const [searchParams, setSearchParams] = useSearchParams()
   const selectedIngredient = searchParams.get('ingredient') ?? ''
-  const ingredients = useMemo(() => [...new Set(items.flatMap((item) => item.ingredients ?? []))].sort((a, b) => a.localeCompare(b)), [items])
+  const ingredients = useSelector(selectIngredients)
   const scopedItems = useMemo(
     () => selectedIngredient ? items.filter((item) => (item.ingredients ?? []).includes(selectedIngredient)) : items,
     [items, selectedIngredient],

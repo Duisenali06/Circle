@@ -13,3 +13,7 @@ const firebaseConfig = {
 
 const app = getApps().length ? getApp() : initializeApp(firebaseConfig)
 export const auth = getAuth(app)
+export async function getDb() {
+  const { getFirestore } = await import('firebase/firestore')
+  return getFirestore(app)
+}

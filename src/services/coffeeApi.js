@@ -1,4 +1,6 @@
-const COFFEE_API = 'https://api.sampleapis.com/coffee/hot'
+import coffeeFallback from '../data/coffeeFallback.js'
+
+const COFFEE_API = '/api/coffee'
 const CACHE_KEY = 'coffee:hot'
 const CACHE_TTL = 5 * 60 * 1000
 let cached = null
@@ -42,13 +44,14 @@ async function fetchCoffee() {
 export function getCoffeeItems({ force = false } = {}) {
   if (!force && cached && cached.expiresAt > Date.now()) return Promise.resolve(cached.items)
   if (!force && pending) return pending
-  const request = fetchCoffee().catch(async (error) => {
+  const request = fetchCoffee().catch(async () => {
     const offlineItems = await readOffline()
     if (offlineItems) {
       cached = { items: offlineItems, expiresAt: 0, offline: true }
       return offlineItems
     }
-    throw error
+    cached = { items: coffeeFallback, expiresAt: 0, offline: true }
+    return coffeeFallback
   })
   pending = request
   return request.finally(() => { if (pending === request) pending = null })

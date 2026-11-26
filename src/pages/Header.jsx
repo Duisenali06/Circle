@@ -4,12 +4,16 @@ import { headerData } from '../data/headerData.js'
 import coffeeLogo from '../images/coffeeLogo.svg'
 import DropDownBtn from '../ui/DropDownBtn.jsx'
 import { useAuth } from '../auth/AuthContext.jsx'
+import useUserSelection from '../hooks/useUserSelection.js'
 
 export default function Header() {
   const [open, setOpen] = useState(false)
   const { user, loading, logout } = useAuth()
+  const { count: cartCount } = useUserSelection()
   const links = [
     ...headerData.filter((item) => item.path !== '/login'),
+    { title: 'Избранное', path: '/favorites' },
+    { title: cartCount ? `Корзина (${cartCount})` : 'Корзина', path: '/cart' },
     ...(loading ? [] : user ? [{ title: 'Профиль', path: '/profile' }] : [
       { title: 'Войти', path: '/login' }, { title: 'Регистрация', path: '/signup' },
     ]),

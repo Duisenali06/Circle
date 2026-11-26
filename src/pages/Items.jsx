@@ -1,7 +1,9 @@
 import { useMemo } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
+import { useSelector } from 'react-redux'
 import CoffeeCard from '../ui/CoffeeCard.jsx'
 import useCoffeeItems from '../hooks/useCoffeeItems.js'
+import { selectFilteredCoffee, selectIngredients } from '../store/coffeeSlice.js'
 
 const PAGE_SIZE = 8
 const inputClass = 'w-full rounded-xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-800 outline-none transition focus:border-amber-700 focus:ring-2 focus:ring-amber-100'
@@ -15,7 +17,7 @@ function setParam(params, key, value) {
 }
 
 export default function Items() {
-  const { status, items, error, refetch, offlineData } = useCoffeeItems()
+  const { status, error, refetch, offlineData } = useCoffeeItems()
   const [searchParams, setSearchParams] = useSearchParams()
   const search = searchParams.get('search') ?? ''
   const ingredientFilter = searchParams.get('ingredient') ?? ''
@@ -23,27 +25,9 @@ export default function Items() {
   const sort = searchParams.get('sort') ?? 'title-asc'
   const page = Math.max(1, Number.parseInt(searchParams.get('page') ?? '1', 10) || 1)
 
-  const ingredients = useMemo(
-    () => [...new Set(items.flatMap((item) => item.ingredients ?? []))].sort((a, b) => a.localeCompare(b)),
-    [items],
-  )
-  const filteredItems = useMemo(() => {
-    const query = search.trim().toLocaleLowerCase()
-    const result = items.filter((item) => {
-      const itemIngredients = item.ingredients ?? []
-      const matchesQuery = !query || `${item.title} ${item.description} ${itemIngredients.join(' ')}`.toLocaleLowerCase().includes(query)
-      const matchesIngredient = !ingredientFilter || itemIngredients.includes(ingredientFilter)
-      const matchesSize = !recipeSize || (recipeSize === 'simple' ? itemIngredients.length <= 2 : itemIngredients.length >= 3)
-      return matchesQuery && matchesIngredient && matchesSize
-    })
-
-    return result.sort((a, b) => {
-      if (sort === 'title-desc') return b.title.localeCompare(a.title)
-      if (sort === 'ingredients-desc') return (b.ingredients?.length ?? 0) - (a.ingredients?.length ?? 0)
-      if (sort === 'ingredients-asc') return (a.ingredients?.length ?? 0) - (b.ingredients?.length ?? 0)
-      return a.title.localeCompare(b.title)
-    })
-  }, [items, search, ingredientFilter, recipeSize, sort])
+  const filterOptions = useMemo(() => ({ search, ingredient: ingredientFilter, size: recipeSize, sort }), [search, ingredientFilter, recipeSize, sort])
+  const ingredients = useSelector(selectIngredients)
+  const filteredItems = useSelector((state) => selectFilteredCoffee(state, filterOptions))
 
   const pageCount = Math.max(1, Math.ceil(filteredItems.length / PAGE_SIZE))
   const currentPage = Math.min(page, pageCount)
